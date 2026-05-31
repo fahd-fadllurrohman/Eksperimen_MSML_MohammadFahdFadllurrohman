@@ -1,0 +1,42 @@
+name: Automated Preprocessing - Advance
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  preprocessing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.12.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12.7'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run automated preprocessing
+        run: python automate_MohammadFahdFadllurrohman.py
+
+      - name: Upload preprocessed dataset as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: preprocessed-dataset
+          path: nadataset_preprocessing/
+          retention-days: 30
+
+      - name: Commit preprocessed data back to repo
+        run: |
+          git config --local user.email "github-actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add nadataset_preprocessing/
+          git diff --staged --quiet || git commit -m "ci: auto-update preprocessed dataset [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
